@@ -84,8 +84,8 @@ class CustomShutterCard extends LitElement {
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: #a0c8e0;
-        background-image: linear-gradient(135deg, #a0c8e0 0%, #86bbda 100%);
+        background-color: #78A5C5;
+        background-image: linear-gradient(135deg, #a0c8e0 0%, #78A5C5 100%);
         z-index: 1;
       }
 
@@ -95,7 +95,7 @@ class CustomShutterCard extends LitElement {
         left: 0;
         width: 100%;
         height: 100%;
-        border: 6px solid #8B4513;
+        border: 6px solid #546E7A;
         box-sizing: border-box;
         border-radius: 4px;
         pointer-events: none;
@@ -107,8 +107,8 @@ class CustomShutterCard extends LitElement {
         top: 0;
         left: 0;
         width: 100%;
-        background-color: #d4d4d4;
-        border-top: 1px solid #aaa;
+        background-color: #f0f0f0;
+        border-top: 1px solid #e0e0e0;
         z-index: 2;
         cursor: ns-resize;
         transition: height 0.2s ease-out;
@@ -188,7 +188,7 @@ class CustomShutterCard extends LitElement {
         position: absolute;
         width: 100%;
         height: 1px;
-        background-color: #aaa;
+        background-color: #e0e0e0;
         pointer-events: none;
       }
 
@@ -464,20 +464,21 @@ class CustomShutterCard extends LitElement {
     const entityId = this.config.entity;
     
     // Get the correct service based on position
+    let domain = 'cover';
     let service;
     let serviceData = { entity_id: entityId };
     
     if (this.position === 0) {
-      service = 'cover.close_cover';
+      service = 'close_cover';
     } else if (this.position === 100) {
-      service = 'cover.open_cover';
+      service = 'open_cover';
     } else {
-      service = 'cover.set_cover_position';
+      service = 'set_cover_position';
       serviceData.position = this.position;
     }
     
     // Call the service to control the cover
-    this.hass.callService('cover', service, serviceData);
+    this.hass.callService(domain, service, serviceData);
   }
 }
 
