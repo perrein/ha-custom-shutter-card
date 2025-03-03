@@ -1,0 +1,3 @@
+title: Exemple de configuration
+type: custom:custom-shutter-card
+entity: cover.volet_salon

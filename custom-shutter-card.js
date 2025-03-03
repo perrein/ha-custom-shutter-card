@@ -4,7 +4,10 @@
  * This custom card provides an interactive visualization for window shutters/blinds
  * with drag-and-drop positioning capabilities.
  * 
+ * @author Custom Shutter Card Contributors
  * @version 1.0.0
+ * @license MIT
+ * @see https://github.com/yourusername/custom-shutter-card
  */
 
 const LitElement = Object.getPrototypeOf(customElements.get("ha-panel-lovelace"));
@@ -478,8 +481,10 @@ class CustomShutterCard extends LitElement {
   }
 }
 
-// Define the custom element
-customElements.define('custom-shutter-card', CustomShutterCard);
+// Register the card for the Lovelace dashboard
+if (!customElements.get('custom-shutter-card')) {
+  customElements.define('custom-shutter-card', CustomShutterCard);
+}
 
 // Add it to the official card types in HACS
 window.customCards = window.customCards || [];
