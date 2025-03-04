@@ -41,6 +41,22 @@ class CustomShutterCard extends LitElement {
     this._onTouchEnd = this._onTouchEnd.bind(this);
     this._updateVisualElements = this._updateVisualElements.bind(this);
   }
+  
+  connectedCallback() {
+    super.connectedCallback();
+    
+    // For debugging in the browser console when component is actually in DOM
+    setTimeout(() => {
+      console.log("Component connected to DOM");
+      if (this.shadowRoot) {
+        console.log("Window:", this.shadowRoot.querySelector('.window'));
+        console.log("Shutter:", this.shadowRoot.querySelector('.shutter-slats'));
+        console.log("Handle:", this.shadowRoot.querySelector('.shutter-handle'));
+      } else {
+        console.error("ShadowRoot not found!");
+      }
+    }, 500);
+  }
 
   static get styles() {
     return css`
@@ -117,6 +133,7 @@ class CustomShutterCard extends LitElement {
         z-index: 1;
         border: none;
         box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.3);
+        pointer-events: none; /* Permet aux clics de passer à travers */
       }
 
       .window-grid {
@@ -180,26 +197,26 @@ class CustomShutterCard extends LitElement {
         left: 0;
         width: 100%;
         background-color: var(--shutter-color);
-        border-top: 1px solid #e0e0e0;
         z-index: 2;
         cursor: ns-resize;
         transition: none;
         background-image: repeating-linear-gradient(
-          180deg,
-          rgba(200, 200, 200, 0.1),
-          rgba(200, 200, 200, 0.1) 8px,
-          rgba(150, 150, 150, 0.2) 8px,
-          rgba(150, 150, 150, 0.2) 10px
+          0deg, 
+          #F0F0F0 0px, 
+          #FFFFFF 2px, 
+          #F8F8F8 4px, 
+          #F2F2F2 15px
         );
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
       }
 
       .shutter-handle {
         position: absolute;
         left: 50%;
         transform: translateX(-50%);
-        width: 50px;
+        width: 60px;
         height: 8px;
-        background-color: var(--handle-color);
+        background-color: #455A64;
         border-radius: 4px;
         cursor: ns-resize;
         z-index: 10;
@@ -363,6 +380,28 @@ class CustomShutterCard extends LitElement {
 
   getCardSize() {
     return 3;
+  }
+
+  firstUpdated() {
+    // After first render, update the visual elements
+    console.log("First render completed, updating elements");
+    setTimeout(() => {
+      // Setting initial position
+      if (this.hass && this.config && this.hass.states[this.config.entity]) {
+        const stateObj = this.hass.states[this.config.entity];
+        if (stateObj.attributes.current_position !== undefined) {
+          this.position = stateObj.attributes.current_position;
+        }
+      }
+      this._updateVisualElements();
+    }, 100);
+  }
+
+  updated(changedProps) {
+    if (changedProps.has('position')) {
+      console.log("Position property changed, updating visual elements");
+      this._updateVisualElements();
+    }
   }
 
   render() {
@@ -618,26 +657,39 @@ class CustomShutterCard extends LitElement {
   }
   
   _updateVisualElements() {
+    if (!this.shadowRoot) {
+      console.error("No shadowRoot found - cannot update visual elements");
+      return;
+    }
+    
     try {
       const shutterHeight = 100 - this.position;
       
-      // Get elements
+      // Log general position info for debugging
+      console.log("Position:", this.position, "ShutterHeight:", shutterHeight);
+      
+      // Get elements using querySelector within shadowRoot
       const shutterElement = this.shadowRoot.querySelector('.shutter-slats');
       const handleElement = this.shadowRoot.querySelector('.shutter-handle');
-      
-      // Log elements for debugging
-      console.log("Updating visual elements: shutter =", shutterElement ? "found" : "not found", 
-                  "handle =", handleElement ? "found" : "not found", 
-                  "height =", shutterHeight);
       
       // Update elements if they exist
       if (shutterElement) {
         shutterElement.style.height = `${shutterHeight}%`;
+        console.log("Set shutter height to:", shutterHeight + "%");
+      } else {
+        console.error("Shutter element not found in DOM");
       }
       
       if (handleElement) {
+        // Fix handle position
         handleElement.style.bottom = `${shutterHeight}%`;
+        console.log("Set handle bottom to:", shutterHeight + "%");
+      } else {
+        console.error("Handle element not found in DOM");
       }
+      
+      // Request update to ensure UI reacts
+      this.requestUpdate();
     } catch (error) {
       console.error("Error in _updateVisualElements:", error);
     }
@@ -695,8 +747,14 @@ class CustomShutterCard extends LitElement {
       // Store initial position for logging
       const oldPosition = this.position;
       
-      // Set new position
-      this.position = position;
+      // Set new position - round to the nearest 10% if coming from +10%/-10% buttons
+      let newPosition = position;
+      if (position !== 0 && position !== 100) {
+        // Round to nearest 10%
+        newPosition = Math.round(position / 10) * 10;
+      }
+      
+      this.position = newPosition;
       
       // Log button actions
       if (position === 100) {
@@ -704,12 +762,12 @@ class CustomShutterCard extends LitElement {
       } else if (position === 0) {
         console.log("CLOSE button clicked");
       } else if (position > oldPosition) {
-        console.log("OPEN button (+10%) clicked");
+        console.log("OPEN button (+10%) clicked - Position:", newPosition);
       } else if (position < oldPosition) {
-        console.log("CLOSE button (-10%) clicked");
+        console.log("CLOSE button (-10%) clicked - Position:", newPosition);
       }
       
-      console.log("setPosition called with pos =", position);
+      console.log("setPosition called with pos =", newPosition);
       
       // Use the centralized function for visual updates
       this._updateVisualElements();
