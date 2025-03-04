@@ -31,8 +31,15 @@ class CustomShutterCard extends LitElement {
     this.dragging = false;
     this._isMouseDown = false;
     
-    // Ajoutons des logs de débogage lors de l'initialisation
+    // Debug log for initialization
     console.log("--- INITIALIZING SHUTTER APPLICATION ---");
+    
+    // Bind methods to ensure 'this' context is preserved
+    this._onMouseMove = this._onMouseMove.bind(this);
+    this._onMouseUp = this._onMouseUp.bind(this);
+    this._onTouchMove = this._onTouchMove.bind(this);
+    this._onTouchEnd = this._onTouchEnd.bind(this);
+    this._updateVisualElements = this._updateVisualElements.bind(this);
   }
 
   static get styles() {
@@ -393,27 +400,39 @@ class CustomShutterCard extends LitElement {
   }
 
   _onMouseDown(e) {
-    this._isMouseDown = true;
-    this._updatePositionFromMouseEvent(e);
-    
-    // Add event listeners to window to handle mouse movements outside the card
-    window.addEventListener('mousemove', this._boundMouseMove = this._onMouseMove.bind(this));
-    window.addEventListener('mouseup', this._boundMouseUp = this._onMouseUp.bind(this));
-    
-    // Prevent text selection during drag
-    e.preventDefault();
+    try {
+      this._isMouseDown = true;
+      this._updatePositionFromMouseEvent(e);
+      
+      // Add event listeners to window to handle mouse movements outside the card
+      window.addEventListener('mousemove', this._onMouseMove);
+      window.addEventListener('mouseup', this._onMouseUp);
+      
+      console.log("Mouse down detected - Drag started");
+      
+      // Prevent text selection during drag
+      e.preventDefault();
+    } catch (error) {
+      console.error("Error in _onMouseDown:", error);
+    }
   }
 
   _onTouchStart(e) {
-    this._isMouseDown = true;
-    this._updatePositionFromTouchEvent(e);
-    
-    // Add event listeners to window to handle touch movements
-    window.addEventListener('touchmove', this._boundTouchMove = this._onTouchMove.bind(this));
-    window.addEventListener('touchend', this._boundTouchEnd = this._onTouchEnd.bind(this));
-    
-    // Prevent scrolling during interaction
-    e.preventDefault();
+    try {
+      this._isMouseDown = true;
+      this._updatePositionFromTouchEvent(e);
+      
+      // Add event listeners to window to handle touch movements
+      window.addEventListener('touchmove', this._onTouchMove);
+      window.addEventListener('touchend', this._onTouchEnd);
+      
+      console.log("Touch start detected - Drag started");
+      
+      // Prevent scrolling during interaction
+      e.preventDefault();
+    } catch (error) {
+      console.error("Error in _onTouchStart:", error);
+    }
   }
 
   _onMouseMove(e) {
@@ -429,70 +448,52 @@ class CustomShutterCard extends LitElement {
   }
 
   _onMouseUp() {
-    this._isMouseDown = false;
-    
-    // Remove event listeners when done
-    window.removeEventListener('mousemove', this._boundMouseMove);
-    window.removeEventListener('mouseup', this._boundMouseUp);
-    
-    // Log pour débugger la fin du déplacement
-    console.log("End of drag (mouseup)");
-    
-    // Set the final position in Home Assistant
-    this._sendPositionCommand();
+    try {
+      this._isMouseDown = false;
+      
+      // Remove event listeners when done
+      window.removeEventListener('mousemove', this._onMouseMove);
+      window.removeEventListener('mouseup', this._onMouseUp);
+      
+      // Log pour débugger la fin du déplacement
+      console.log("End of drag (mouseup)");
+      
+      // Set the final position in Home Assistant
+      this._sendPositionCommand();
+    } catch (error) {
+      console.error("Error in _onMouseUp:", error);
+    }
   }
 
   _onTouchEnd() {
-    this._isMouseDown = false;
-    
-    // Remove event listeners when done
-    window.removeEventListener('touchmove', this._boundTouchMove);
-    window.removeEventListener('touchend', this._boundTouchEnd);
-    
-    // Set the final position in Home Assistant
-    this._sendPositionCommand();
+    try {
+      this._isMouseDown = false;
+      
+      // Remove event listeners when done
+      window.removeEventListener('touchmove', this._onTouchMove);
+      window.removeEventListener('touchend', this._onTouchEnd);
+      
+      console.log("End of touch drag");
+      
+      // Set the final position in Home Assistant
+      this._sendPositionCommand();
+    } catch (error) {
+      console.error("Error in _onTouchEnd:", error);
+    }
   }
 
   _updatePositionFromMouseEvent(e) {
-    const container = this.shadowRoot.querySelector('.shutter-container');
-    const containerRect = container.getBoundingClientRect();
-    
-    // Calculate position percentage from mouse Y position in relation to container
-    let newPositionPercent = ((containerRect.bottom - e.clientY) / containerRect.height) * 100;
-    
-    // Clamp the position between 0 and 100
-    newPositionPercent = Math.max(0, Math.min(100, newPositionPercent));
-    
-    // Round to nearest integer for cleaner UI
-    this.position = Math.round(newPositionPercent);
-    
-    // Debug pour voir la position calculée
-    console.log("Position calculée:", this.position);
-    
-    // Mettre à jour manuellement la position du handle et des volets
-    const shutterHeight = 100 - this.position;
-    const shutterElement = this.shadowRoot.querySelector('.shutter-slats');
-    const handleElement = this.shadowRoot.querySelector('.shutter-handle');
-    
-    if (shutterElement) {
-      shutterElement.style.height = `${shutterHeight}%`;
-    }
-    
-    if (handleElement) {
-      handleElement.style.bottom = `${shutterHeight}%`;
-    }
-    
-    // Force re-render after position update
-    this.requestUpdate();
-  }
-
-  _updatePositionFromTouchEvent(e) {
-    if (e.touches.length > 0) {
+    try {
       const container = this.shadowRoot.querySelector('.shutter-container');
+      if (!container) {
+        console.error("Container element not found");
+        return;
+      }
+      
       const containerRect = container.getBoundingClientRect();
       
-      // Calculate position percentage from touch Y position in relation to container
-      let newPositionPercent = ((containerRect.bottom - e.touches[0].clientY) / containerRect.height) * 100;
+      // Calculate position percentage from mouse Y position in relation to container
+      let newPositionPercent = ((containerRect.bottom - e.clientY) / containerRect.height) * 100;
       
       // Clamp the position between 0 and 100
       newPositionPercent = Math.max(0, Math.min(100, newPositionPercent));
@@ -500,14 +501,32 @@ class CustomShutterCard extends LitElement {
       // Round to nearest integer for cleaner UI
       this.position = Math.round(newPositionPercent);
       
-      // Debug pour voir la position calculée
-      console.log("Position calculée (touch):", this.position);
+      console.log("Position calculée par la souris:", this.position);
       
       // Mettre à jour manuellement la position du handle et des volets
+      this._updateVisualElements();
+      
+      // Force re-render after position update
+      this.requestUpdate();
+    } catch (error) {
+      console.error("Error in _updatePositionFromMouseEvent:", error);
+    }
+  }
+  
+  _updateVisualElements() {
+    try {
       const shutterHeight = 100 - this.position;
+      
+      // Get elements
       const shutterElement = this.shadowRoot.querySelector('.shutter-slats');
       const handleElement = this.shadowRoot.querySelector('.shutter-handle');
       
+      // Log elements for debugging
+      console.log("Updating visual elements: shutter =", shutterElement ? "found" : "not found", 
+                  "handle =", handleElement ? "found" : "not found", 
+                  "height =", shutterHeight);
+      
+      // Update elements if they exist
       if (shutterElement) {
         shutterElement.style.height = `${shutterHeight}%`;
       }
@@ -515,85 +534,119 @@ class CustomShutterCard extends LitElement {
       if (handleElement) {
         handleElement.style.bottom = `${shutterHeight}%`;
       }
-      
-      // Force re-render after position update
-      this.requestUpdate();
+    } catch (error) {
+      console.error("Error in _updateVisualElements:", error);
+    }
+  }
+
+  _updatePositionFromTouchEvent(e) {
+    try {
+      if (e.touches.length > 0) {
+        const container = this.shadowRoot.querySelector('.shutter-container');
+        if (!container) {
+          console.error("Container element not found for touch event");
+          return;
+        }
+        
+        const containerRect = container.getBoundingClientRect();
+        
+        // Calculate position percentage from touch Y position in relation to container
+        let newPositionPercent = ((containerRect.bottom - e.touches[0].clientY) / containerRect.height) * 100;
+        
+        // Clamp the position between 0 and 100
+        newPositionPercent = Math.max(0, Math.min(100, newPositionPercent));
+        
+        // Round to nearest integer for cleaner UI
+        this.position = Math.round(newPositionPercent);
+        
+        console.log("Position calculée (touch):", this.position);
+        
+        // Use the centralized function for visual updates
+        this._updateVisualElements();
+        
+        // Force re-render after position update
+        this.requestUpdate();
+      }
+    } catch (error) {
+      console.error("Error in _updatePositionFromTouchEvent:", error);
     }
   }
 
   _handleSliderChange(e) {
-    this.position = parseInt(e.target.value);
-    
-    // Mettre à jour manuellement la position du handle et des volets
-    const shutterHeight = 100 - this.position;
-    const shutterElement = this.shadowRoot.querySelector('.shutter-slats');
-    const handleElement = this.shadowRoot.querySelector('.shutter-handle');
-    
-    if (shutterElement) {
-      shutterElement.style.height = `${shutterHeight}%`;
+    try {
+      this.position = parseInt(e.target.value);
+      console.log("Slider change position:", this.position);
+      
+      // Use the centralized function for visual updates
+      this._updateVisualElements();
+      
+      this._sendPositionCommand();
+    } catch (error) {
+      console.error("Error in _handleSliderChange:", error);
     }
-    
-    if (handleElement) {
-      handleElement.style.bottom = `${shutterHeight}%`;
-    }
-    
-    this._sendPositionCommand();
   }
 
   _setPosition(position) {
-    this.position = position;
-    
-    // Log pour débugger les actions des boutons
-    if (position === 100) {
-      console.log("OPEN button clicked");
-    } else if (position === 0) {
-      console.log("CLOSE button clicked");
-    } else if (position > this.position - 10) {
-      console.log("OPEN button (+10%) clicked");
-    } else if (position < this.position + 10) {
-      console.log("CLOSE button (-10%) clicked");
+    try {
+      // Store initial position for logging
+      const oldPosition = this.position;
+      
+      // Set new position
+      this.position = position;
+      
+      // Log button actions
+      if (position === 100) {
+        console.log("OPEN button clicked");
+      } else if (position === 0) {
+        console.log("CLOSE button clicked");
+      } else if (position > oldPosition) {
+        console.log("OPEN button (+10%) clicked");
+      } else if (position < oldPosition) {
+        console.log("CLOSE button (-10%) clicked");
+      }
+      
+      console.log("setPosition called with pos =", position);
+      
+      // Use the centralized function for visual updates
+      this._updateVisualElements();
+      
+      // Send command to Home Assistant
+      this._sendPositionCommand();
+    } catch (error) {
+      console.error("Error in _setPosition:", error);
     }
-    
-    console.log("setPosition called with pos =", position);
-    
-    // Mettre à jour manuellement la position du handle et des volets
-    const shutterHeight = 100 - this.position;
-    const shutterElement = this.shadowRoot.querySelector('.shutter-slats');
-    const handleElement = this.shadowRoot.querySelector('.shutter-handle');
-    
-    if (shutterElement) {
-      shutterElement.style.height = `${shutterHeight}%`;
-    }
-    
-    if (handleElement) {
-      handleElement.style.bottom = `${shutterHeight}%`;
-    }
-    
-    this._sendPositionCommand();
   }
 
   _sendPositionCommand() {
-    const entityId = this.config.entity;
-    
-    // Get the correct service based on position
-    let domain = 'cover';
-    let service;
-    let serviceData = { entity_id: entityId };
-    
-    if (this.position === 0) {
-      service = 'close_cover';
-    } else if (this.position === 100) {
-      service = 'open_cover';
-    } else {
-      service = 'set_cover_position';
-      serviceData.position = this.position;
+    try {
+      const entityId = this.config.entity;
+      
+      // Get the correct service based on position
+      let domain = 'cover';
+      let service;
+      let serviceData = { entity_id: entityId };
+      
+      if (this.position === 0) {
+        service = 'close_cover';
+      } else if (this.position === 100) {
+        service = 'open_cover';
+      } else {
+        service = 'set_cover_position';
+        serviceData.position = this.position;
+      }
+      
+      // Log the service call for debugging
+      console.log(`Service appelé: ${domain}.${service} avec la position ${this.position}%`);
+      
+      // Call the service to control the cover
+      if (this.hass && this.hass.callService) {
+        this.hass.callService(domain, service, serviceData);
+      } else {
+        console.error("Home Assistant API not available for service call");
+      }
+    } catch (error) {
+      console.error("Error in _sendPositionCommand:", error);
     }
-    
-    // Call the service to control the cover
-    this.hass.callService(domain, service, serviceData);
-    
-    // Pour la démo, affichons l'action dans la console
-    console.log(`Service appelé: ${domain}.${service} avec la position ${this.position}%`);
   }
 }
 
