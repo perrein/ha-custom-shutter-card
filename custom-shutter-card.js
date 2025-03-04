@@ -51,6 +51,10 @@ class CustomShutterCard extends LitElement {
         --header-height: 40px;
         --footer-height: 40px;
         --info-panel-width: 150px;
+        --shutter-color: #f0f0f0;
+        --handle-color: #03a9f4;
+        --window-color: #78A5C5;
+        --frame-color: #546E7A;
       }
 
       .card-container {
@@ -86,6 +90,7 @@ class CustomShutterCard extends LitElement {
         background-color: var(--secondary-background-color);
         border-radius: 4px;
         overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
       }
 
       .window {
@@ -94,8 +99,8 @@ class CustomShutterCard extends LitElement {
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: #78A5C5;
-        background-image: linear-gradient(135deg, #a0c8e0 0%, #78A5C5 100%);
+        background-color: var(--window-color);
+        background-image: linear-gradient(135deg, #a0c8e0 0%, var(--window-color) 100%);
         z-index: 1;
       }
 
@@ -105,7 +110,7 @@ class CustomShutterCard extends LitElement {
         left: 0;
         width: 100%;
         height: 100%;
-        border: 6px solid #546E7A;
+        border: 6px solid var(--frame-color);
         box-sizing: border-box;
         border-radius: 4px;
         pointer-events: none;
@@ -117,11 +122,18 @@ class CustomShutterCard extends LitElement {
         top: 0;
         left: 0;
         width: 100%;
-        background-color: #f0f0f0;
+        background-color: var(--shutter-color);
         border-top: 1px solid #e0e0e0;
         z-index: 2;
         cursor: ns-resize;
-        transition: height 0.2s ease-out;
+        transition: none;
+        background-image: repeating-linear-gradient(
+          180deg,
+          rgba(200, 200, 200, 0.1),
+          rgba(200, 200, 200, 0.1) 8px,
+          rgba(150, 150, 150, 0.2) 8px,
+          rgba(150, 150, 150, 0.2) 10px
+        );
       }
 
       .shutter-handle {
@@ -129,18 +141,24 @@ class CustomShutterCard extends LitElement {
         bottom: 0;
         left: 50%;
         transform: translateX(-50%);
-        width: 40px;
-        height: 6px;
-        background-color: #777;
-        border-radius: 3px;
+        width: 50px;
+        height: 8px;
+        background-color: var(--handle-color);
+        border-radius: 4px;
         cursor: ns-resize;
         z-index: 4;
-        transition: bottom 0.2s ease-out;
+        transition: none;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .shutter-handle:hover {
+        background-color: #0288d1;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
       }
 
       .info-panel {
         width: var(--info-panel-width);
-        padding: 8px;
+        padding: 12px;
         background-color: var(--secondary-background-color);
         border-radius: 4px;
       }
@@ -149,6 +167,12 @@ class CustomShutterCard extends LitElement {
         display: flex;
         justify-content: space-between;
         margin: 8px 0;
+        padding-bottom: 6px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      }
+
+      .info-row:last-child {
+        border-bottom: none;
       }
 
       .info-label {
@@ -172,8 +196,8 @@ class CustomShutterCard extends LitElement {
         display: flex;
         align-items: center;
         flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 10px;
+        gap: 10px;
+        margin-bottom: 15px;
       }
 
       .position-display {
@@ -186,15 +210,24 @@ class CustomShutterCard extends LitElement {
         color: var(--text-primary-color);
         border: none;
         border-radius: 4px;
-        padding: 8px 12px;
-        margin-right: 4px;
+        padding: 10px 16px;
         cursor: pointer;
         font-size: 0.9em;
-        transition: background-color 0.3s ease;
+        font-weight: 500;
+        transition: all 0.2s ease-in-out;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.14);
+        text-transform: uppercase;
       }
 
       .control-button:hover {
-        background-color: var(--primary-color-light);
+        background-color: var(--primary-color-light, #0288d1);
+        transform: translateY(-1px);
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+      }
+
+      .control-button:active {
+        transform: translateY(1px);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
       }
 
       .slat-line {
@@ -207,14 +240,14 @@ class CustomShutterCard extends LitElement {
 
       .position-slider {
         width: 100%;
-        margin: 8px 0;
+        margin: 12px 0;
         -webkit-appearance: none;
-        height: 10px;
+        height: 8px;
         background: #e1e1e1;
         outline: none;
-        opacity: 0.7;
+        opacity: 0.9;
         border-radius: 5px;
-        transition: opacity .2s;
+        transition: all 0.2s;
       }
       
       .position-slider:hover {
@@ -224,20 +257,22 @@ class CustomShutterCard extends LitElement {
       .position-slider::-webkit-slider-thumb {
         -webkit-appearance: none;
         appearance: none;
-        width: 20px;
-        height: 20px;
-        background: #009DDC;
+        width: 22px;
+        height: 22px;
+        background: var(--primary-color, #03a9f4);
         cursor: pointer;
         border-radius: 50%;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
       }
       
       .position-slider::-moz-range-thumb {
-        width: 20px;
-        height: 20px;
-        background: #009DDC;
+        width: 22px;
+        height: 22px;
+        background: var(--primary-color, #03a9f4);
         cursor: pointer;
         border-radius: 50%;
         border: none;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
       }
       
       .attribution {
@@ -245,6 +280,7 @@ class CustomShutterCard extends LitElement {
         font-size: 0.8em;
         color: var(--secondary-text-color);
         opacity: 0.7;
+        margin-top: 10px;
       }
 
       @media (max-width: 500px) {
