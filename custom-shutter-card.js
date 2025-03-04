@@ -31,15 +31,8 @@ class CustomShutterCard extends LitElement {
     this.dragging = false;
     this._isMouseDown = false;
     
-    // Debug log for initialization
+    // Ajoutons des logs de débogage lors de l'initialisation
     console.log("--- INITIALIZING SHUTTER APPLICATION ---");
-    
-    // Bind methods to ensure 'this' context is preserved
-    this._onMouseMove = this._onMouseMove.bind(this);
-    this._onMouseUp = this._onMouseUp.bind(this);
-    this._onTouchMove = this._onTouchMove.bind(this);
-    this._onTouchEnd = this._onTouchEnd.bind(this);
-    this._updateVisualElements = this._updateVisualElements.bind(this);
   }
 
   static get styles() {
@@ -51,10 +44,6 @@ class CustomShutterCard extends LitElement {
         --header-height: 40px;
         --footer-height: 40px;
         --info-panel-width: 150px;
-        --shutter-color: #f0f0f0;
-        --handle-color: #03a9f4;
-        --window-color: #78A5C5;
-        --frame-color: #546E7A;
       }
 
       .card-container {
@@ -90,7 +79,6 @@ class CustomShutterCard extends LitElement {
         background-color: var(--secondary-background-color);
         border-radius: 4px;
         overflow: hidden;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
       }
 
       .window {
@@ -99,8 +87,8 @@ class CustomShutterCard extends LitElement {
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: var(--window-color);
-        background-image: linear-gradient(135deg, #a0c8e0 0%, var(--window-color) 100%);
+        background-color: #78A5C5;
+        background-image: linear-gradient(135deg, #a0c8e0 0%, #78A5C5 100%);
         z-index: 1;
       }
 
@@ -110,7 +98,7 @@ class CustomShutterCard extends LitElement {
         left: 0;
         width: 100%;
         height: 100%;
-        border: 6px solid var(--frame-color);
+        border: 6px solid #546E7A;
         box-sizing: border-box;
         border-radius: 4px;
         pointer-events: none;
@@ -122,18 +110,11 @@ class CustomShutterCard extends LitElement {
         top: 0;
         left: 0;
         width: 100%;
-        background-color: var(--shutter-color);
+        background-color: #f0f0f0;
         border-top: 1px solid #e0e0e0;
         z-index: 2;
         cursor: ns-resize;
-        transition: none;
-        background-image: repeating-linear-gradient(
-          180deg,
-          rgba(200, 200, 200, 0.1),
-          rgba(200, 200, 200, 0.1) 8px,
-          rgba(150, 150, 150, 0.2) 8px,
-          rgba(150, 150, 150, 0.2) 10px
-        );
+        transition: height 0.2s ease-out;
       }
 
       .shutter-handle {
@@ -141,24 +122,18 @@ class CustomShutterCard extends LitElement {
         bottom: 0;
         left: 50%;
         transform: translateX(-50%);
-        width: 50px;
-        height: 8px;
-        background-color: var(--handle-color);
-        border-radius: 4px;
+        width: 40px;
+        height: 6px;
+        background-color: #777;
+        border-radius: 3px;
         cursor: ns-resize;
         z-index: 4;
-        transition: none;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      }
-
-      .shutter-handle:hover {
-        background-color: #0288d1;
-        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+        transition: bottom 0.2s ease-out;
       }
 
       .info-panel {
         width: var(--info-panel-width);
-        padding: 12px;
+        padding: 8px;
         background-color: var(--secondary-background-color);
         border-radius: 4px;
       }
@@ -167,12 +142,6 @@ class CustomShutterCard extends LitElement {
         display: flex;
         justify-content: space-between;
         margin: 8px 0;
-        padding-bottom: 6px;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-      }
-
-      .info-row:last-child {
-        border-bottom: none;
       }
 
       .info-label {
@@ -196,8 +165,8 @@ class CustomShutterCard extends LitElement {
         display: flex;
         align-items: center;
         flex-wrap: wrap;
-        gap: 10px;
-        margin-bottom: 15px;
+        gap: 8px;
+        margin-bottom: 10px;
       }
 
       .position-display {
@@ -210,24 +179,15 @@ class CustomShutterCard extends LitElement {
         color: var(--text-primary-color);
         border: none;
         border-radius: 4px;
-        padding: 10px 16px;
+        padding: 8px 12px;
+        margin-right: 4px;
         cursor: pointer;
         font-size: 0.9em;
-        font-weight: 500;
-        transition: all 0.2s ease-in-out;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.14);
-        text-transform: uppercase;
+        transition: background-color 0.3s ease;
       }
 
       .control-button:hover {
-        background-color: var(--primary-color-light, #0288d1);
-        transform: translateY(-1px);
-        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
-      }
-
-      .control-button:active {
-        transform: translateY(1px);
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        background-color: var(--primary-color-light);
       }
 
       .slat-line {
@@ -240,14 +200,14 @@ class CustomShutterCard extends LitElement {
 
       .position-slider {
         width: 100%;
-        margin: 12px 0;
+        margin: 8px 0;
         -webkit-appearance: none;
-        height: 8px;
+        height: 10px;
         background: #e1e1e1;
         outline: none;
-        opacity: 0.9;
+        opacity: 0.7;
         border-radius: 5px;
-        transition: all 0.2s;
+        transition: opacity .2s;
       }
       
       .position-slider:hover {
@@ -257,22 +217,20 @@ class CustomShutterCard extends LitElement {
       .position-slider::-webkit-slider-thumb {
         -webkit-appearance: none;
         appearance: none;
-        width: 22px;
-        height: 22px;
-        background: var(--primary-color, #03a9f4);
+        width: 20px;
+        height: 20px;
+        background: #009DDC;
         cursor: pointer;
         border-radius: 50%;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
       }
       
       .position-slider::-moz-range-thumb {
-        width: 22px;
-        height: 22px;
-        background: var(--primary-color, #03a9f4);
+        width: 20px;
+        height: 20px;
+        background: #009DDC;
         cursor: pointer;
         border-radius: 50%;
         border: none;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
       }
       
       .attribution {
@@ -280,7 +238,6 @@ class CustomShutterCard extends LitElement {
         font-size: 0.8em;
         color: var(--secondary-text-color);
         opacity: 0.7;
-        margin-top: 10px;
       }
 
       @media (max-width: 500px) {
@@ -436,39 +393,27 @@ class CustomShutterCard extends LitElement {
   }
 
   _onMouseDown(e) {
-    try {
-      this._isMouseDown = true;
-      this._updatePositionFromMouseEvent(e);
-      
-      // Add event listeners to window to handle mouse movements outside the card
-      window.addEventListener('mousemove', this._onMouseMove);
-      window.addEventListener('mouseup', this._onMouseUp);
-      
-      console.log("Mouse down detected - Drag started");
-      
-      // Prevent text selection during drag
-      e.preventDefault();
-    } catch (error) {
-      console.error("Error in _onMouseDown:", error);
-    }
+    this._isMouseDown = true;
+    this._updatePositionFromMouseEvent(e);
+    
+    // Add event listeners to window to handle mouse movements outside the card
+    window.addEventListener('mousemove', this._boundMouseMove = this._onMouseMove.bind(this));
+    window.addEventListener('mouseup', this._boundMouseUp = this._onMouseUp.bind(this));
+    
+    // Prevent text selection during drag
+    e.preventDefault();
   }
 
   _onTouchStart(e) {
-    try {
-      this._isMouseDown = true;
-      this._updatePositionFromTouchEvent(e);
-      
-      // Add event listeners to window to handle touch movements
-      window.addEventListener('touchmove', this._onTouchMove);
-      window.addEventListener('touchend', this._onTouchEnd);
-      
-      console.log("Touch start detected - Drag started");
-      
-      // Prevent scrolling during interaction
-      e.preventDefault();
-    } catch (error) {
-      console.error("Error in _onTouchStart:", error);
-    }
+    this._isMouseDown = true;
+    this._updatePositionFromTouchEvent(e);
+    
+    // Add event listeners to window to handle touch movements
+    window.addEventListener('touchmove', this._boundTouchMove = this._onTouchMove.bind(this));
+    window.addEventListener('touchend', this._boundTouchEnd = this._onTouchEnd.bind(this));
+    
+    // Prevent scrolling during interaction
+    e.preventDefault();
   }
 
   _onMouseMove(e) {
@@ -484,52 +429,70 @@ class CustomShutterCard extends LitElement {
   }
 
   _onMouseUp() {
-    try {
-      this._isMouseDown = false;
-      
-      // Remove event listeners when done
-      window.removeEventListener('mousemove', this._onMouseMove);
-      window.removeEventListener('mouseup', this._onMouseUp);
-      
-      // Log pour débugger la fin du déplacement
-      console.log("End of drag (mouseup)");
-      
-      // Set the final position in Home Assistant
-      this._sendPositionCommand();
-    } catch (error) {
-      console.error("Error in _onMouseUp:", error);
-    }
+    this._isMouseDown = false;
+    
+    // Remove event listeners when done
+    window.removeEventListener('mousemove', this._boundMouseMove);
+    window.removeEventListener('mouseup', this._boundMouseUp);
+    
+    // Log pour débugger la fin du déplacement
+    console.log("End of drag (mouseup)");
+    
+    // Set the final position in Home Assistant
+    this._sendPositionCommand();
   }
 
   _onTouchEnd() {
-    try {
-      this._isMouseDown = false;
-      
-      // Remove event listeners when done
-      window.removeEventListener('touchmove', this._onTouchMove);
-      window.removeEventListener('touchend', this._onTouchEnd);
-      
-      console.log("End of touch drag");
-      
-      // Set the final position in Home Assistant
-      this._sendPositionCommand();
-    } catch (error) {
-      console.error("Error in _onTouchEnd:", error);
-    }
+    this._isMouseDown = false;
+    
+    // Remove event listeners when done
+    window.removeEventListener('touchmove', this._boundTouchMove);
+    window.removeEventListener('touchend', this._boundTouchEnd);
+    
+    // Set the final position in Home Assistant
+    this._sendPositionCommand();
   }
 
   _updatePositionFromMouseEvent(e) {
-    try {
+    const container = this.shadowRoot.querySelector('.shutter-container');
+    const containerRect = container.getBoundingClientRect();
+    
+    // Calculate position percentage from mouse Y position in relation to container
+    let newPositionPercent = ((containerRect.bottom - e.clientY) / containerRect.height) * 100;
+    
+    // Clamp the position between 0 and 100
+    newPositionPercent = Math.max(0, Math.min(100, newPositionPercent));
+    
+    // Round to nearest integer for cleaner UI
+    this.position = Math.round(newPositionPercent);
+    
+    // Debug pour voir la position calculée
+    console.log("Position calculée:", this.position);
+    
+    // Mettre à jour manuellement la position du handle et des volets
+    const shutterHeight = 100 - this.position;
+    const shutterElement = this.shadowRoot.querySelector('.shutter-slats');
+    const handleElement = this.shadowRoot.querySelector('.shutter-handle');
+    
+    if (shutterElement) {
+      shutterElement.style.height = `${shutterHeight}%`;
+    }
+    
+    if (handleElement) {
+      handleElement.style.bottom = `${shutterHeight}%`;
+    }
+    
+    // Force re-render after position update
+    this.requestUpdate();
+  }
+
+  _updatePositionFromTouchEvent(e) {
+    if (e.touches.length > 0) {
       const container = this.shadowRoot.querySelector('.shutter-container');
-      if (!container) {
-        console.error("Container element not found");
-        return;
-      }
-      
       const containerRect = container.getBoundingClientRect();
       
-      // Calculate position percentage from mouse Y position in relation to container
-      let newPositionPercent = ((containerRect.bottom - e.clientY) / containerRect.height) * 100;
+      // Calculate position percentage from touch Y position in relation to container
+      let newPositionPercent = ((containerRect.bottom - e.touches[0].clientY) / containerRect.height) * 100;
       
       // Clamp the position between 0 and 100
       newPositionPercent = Math.max(0, Math.min(100, newPositionPercent));
@@ -537,32 +500,14 @@ class CustomShutterCard extends LitElement {
       // Round to nearest integer for cleaner UI
       this.position = Math.round(newPositionPercent);
       
-      console.log("Position calculée par la souris:", this.position);
+      // Debug pour voir la position calculée
+      console.log("Position calculée (touch):", this.position);
       
       // Mettre à jour manuellement la position du handle et des volets
-      this._updateVisualElements();
-      
-      // Force re-render after position update
-      this.requestUpdate();
-    } catch (error) {
-      console.error("Error in _updatePositionFromMouseEvent:", error);
-    }
-  }
-  
-  _updateVisualElements() {
-    try {
       const shutterHeight = 100 - this.position;
-      
-      // Get elements
       const shutterElement = this.shadowRoot.querySelector('.shutter-slats');
       const handleElement = this.shadowRoot.querySelector('.shutter-handle');
       
-      // Log elements for debugging
-      console.log("Updating visual elements: shutter =", shutterElement ? "found" : "not found", 
-                  "handle =", handleElement ? "found" : "not found", 
-                  "height =", shutterHeight);
-      
-      // Update elements if they exist
       if (shutterElement) {
         shutterElement.style.height = `${shutterHeight}%`;
       }
@@ -570,119 +515,85 @@ class CustomShutterCard extends LitElement {
       if (handleElement) {
         handleElement.style.bottom = `${shutterHeight}%`;
       }
-    } catch (error) {
-      console.error("Error in _updateVisualElements:", error);
-    }
-  }
-
-  _updatePositionFromTouchEvent(e) {
-    try {
-      if (e.touches.length > 0) {
-        const container = this.shadowRoot.querySelector('.shutter-container');
-        if (!container) {
-          console.error("Container element not found for touch event");
-          return;
-        }
-        
-        const containerRect = container.getBoundingClientRect();
-        
-        // Calculate position percentage from touch Y position in relation to container
-        let newPositionPercent = ((containerRect.bottom - e.touches[0].clientY) / containerRect.height) * 100;
-        
-        // Clamp the position between 0 and 100
-        newPositionPercent = Math.max(0, Math.min(100, newPositionPercent));
-        
-        // Round to nearest integer for cleaner UI
-        this.position = Math.round(newPositionPercent);
-        
-        console.log("Position calculée (touch):", this.position);
-        
-        // Use the centralized function for visual updates
-        this._updateVisualElements();
-        
-        // Force re-render after position update
-        this.requestUpdate();
-      }
-    } catch (error) {
-      console.error("Error in _updatePositionFromTouchEvent:", error);
+      
+      // Force re-render after position update
+      this.requestUpdate();
     }
   }
 
   _handleSliderChange(e) {
-    try {
-      this.position = parseInt(e.target.value);
-      console.log("Slider change position:", this.position);
-      
-      // Use the centralized function for visual updates
-      this._updateVisualElements();
-      
-      this._sendPositionCommand();
-    } catch (error) {
-      console.error("Error in _handleSliderChange:", error);
+    this.position = parseInt(e.target.value);
+    
+    // Mettre à jour manuellement la position du handle et des volets
+    const shutterHeight = 100 - this.position;
+    const shutterElement = this.shadowRoot.querySelector('.shutter-slats');
+    const handleElement = this.shadowRoot.querySelector('.shutter-handle');
+    
+    if (shutterElement) {
+      shutterElement.style.height = `${shutterHeight}%`;
     }
+    
+    if (handleElement) {
+      handleElement.style.bottom = `${shutterHeight}%`;
+    }
+    
+    this._sendPositionCommand();
   }
 
   _setPosition(position) {
-    try {
-      // Store initial position for logging
-      const oldPosition = this.position;
-      
-      // Set new position
-      this.position = position;
-      
-      // Log button actions
-      if (position === 100) {
-        console.log("OPEN button clicked");
-      } else if (position === 0) {
-        console.log("CLOSE button clicked");
-      } else if (position > oldPosition) {
-        console.log("OPEN button (+10%) clicked");
-      } else if (position < oldPosition) {
-        console.log("CLOSE button (-10%) clicked");
-      }
-      
-      console.log("setPosition called with pos =", position);
-      
-      // Use the centralized function for visual updates
-      this._updateVisualElements();
-      
-      // Send command to Home Assistant
-      this._sendPositionCommand();
-    } catch (error) {
-      console.error("Error in _setPosition:", error);
+    this.position = position;
+    
+    // Log pour débugger les actions des boutons
+    if (position === 100) {
+      console.log("OPEN button clicked");
+    } else if (position === 0) {
+      console.log("CLOSE button clicked");
+    } else if (position > this.position - 10) {
+      console.log("OPEN button (+10%) clicked");
+    } else if (position < this.position + 10) {
+      console.log("CLOSE button (-10%) clicked");
     }
+    
+    console.log("setPosition called with pos =", position);
+    
+    // Mettre à jour manuellement la position du handle et des volets
+    const shutterHeight = 100 - this.position;
+    const shutterElement = this.shadowRoot.querySelector('.shutter-slats');
+    const handleElement = this.shadowRoot.querySelector('.shutter-handle');
+    
+    if (shutterElement) {
+      shutterElement.style.height = `${shutterHeight}%`;
+    }
+    
+    if (handleElement) {
+      handleElement.style.bottom = `${shutterHeight}%`;
+    }
+    
+    this._sendPositionCommand();
   }
 
   _sendPositionCommand() {
-    try {
-      const entityId = this.config.entity;
-      
-      // Get the correct service based on position
-      let domain = 'cover';
-      let service;
-      let serviceData = { entity_id: entityId };
-      
-      if (this.position === 0) {
-        service = 'close_cover';
-      } else if (this.position === 100) {
-        service = 'open_cover';
-      } else {
-        service = 'set_cover_position';
-        serviceData.position = this.position;
-      }
-      
-      // Log the service call for debugging
-      console.log(`Service appelé: ${domain}.${service} avec la position ${this.position}%`);
-      
-      // Call the service to control the cover
-      if (this.hass && this.hass.callService) {
-        this.hass.callService(domain, service, serviceData);
-      } else {
-        console.error("Home Assistant API not available for service call");
-      }
-    } catch (error) {
-      console.error("Error in _sendPositionCommand:", error);
+    const entityId = this.config.entity;
+    
+    // Get the correct service based on position
+    let domain = 'cover';
+    let service;
+    let serviceData = { entity_id: entityId };
+    
+    if (this.position === 0) {
+      service = 'close_cover';
+    } else if (this.position === 100) {
+      service = 'open_cover';
+    } else {
+      service = 'set_cover_position';
+      serviceData.position = this.position;
     }
+    
+    // Call the service to control the cover
+    this.hass.callService(domain, service, serviceData);
+    
+    // Pour la démo, affichons l'action dans la console
+    console.log(`Service appelé: ${domain}.${service} avec la position ${this.position}%`);
   }
 }
 
