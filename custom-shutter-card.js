@@ -30,6 +30,9 @@ class CustomShutterCard extends LitElement {
     this.position = 100; // 100% = fully open, 0% = fully closed
     this.dragging = false;
     this._isMouseDown = false;
+    
+    // Ajoutons des logs de débogage lors de l'initialisation
+    console.log("--- INITIALIZING SHUTTER APPLICATION ---");
   }
 
   static get styles() {
@@ -120,11 +123,12 @@ class CustomShutterCard extends LitElement {
         left: 50%;
         transform: translateX(-50%);
         width: 40px;
-        height: 8px;
-        background-color: #888;
-        border-radius: 4px;
+        height: 6px;
+        background-color: #777;
+        border-radius: 3px;
         cursor: ns-resize;
         z-index: 4;
+        transition: bottom 0.2s ease-out;
       }
 
       .info-panel {
@@ -150,8 +154,9 @@ class CustomShutterCard extends LitElement {
 
       .card-footer {
         display: flex;
+        flex-direction: column;
         justify-content: space-between;
-        align-items: center;
+        align-items: stretch;
         margin-top: 16px;
         height: var(--footer-height);
       }
@@ -161,6 +166,7 @@ class CustomShutterCard extends LitElement {
         align-items: center;
         flex-wrap: wrap;
         gap: 8px;
+        margin-bottom: 10px;
       }
 
       .position-display {
@@ -195,6 +201,36 @@ class CustomShutterCard extends LitElement {
       .position-slider {
         width: 100%;
         margin: 8px 0;
+        -webkit-appearance: none;
+        height: 10px;
+        background: #e1e1e1;
+        outline: none;
+        opacity: 0.7;
+        border-radius: 5px;
+        transition: opacity .2s;
+      }
+      
+      .position-slider:hover {
+        opacity: 1;
+      }
+      
+      .position-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        background: #009DDC;
+        cursor: pointer;
+        border-radius: 50%;
+      }
+      
+      .position-slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        background: #009DDC;
+        cursor: pointer;
+        border-radius: 50%;
+        border: none;
       }
       
       .attribution {
@@ -319,8 +355,8 @@ class CustomShutterCard extends LitElement {
             <div class="position-control">
               <button class="control-button" @click="${() => this._setPosition(100)}">Ouvrir</button>
               <button class="control-button" @click="${() => this._setPosition(0)}">Fermer</button>
-              <button class="control-button" @click="${() => this._setPosition(Math.min(100, this.position + 10))}">+10%</button>
-              <button class="control-button" @click="${() => this._setPosition(Math.max(0, this.position - 10))}">-10%</button>
+              <button class="control-button" @click="${() => this._setPosition(Math.min(100, currentPosition + 10))}">+10%</button>
+              <button class="control-button" @click="${() => this._setPosition(Math.max(0, currentPosition - 10))}">-10%</button>
             </div>
             <input type="range" min="0" max="100" value="${currentPosition}" 
                   class="position-slider" @change="${this._handleSliderChange}">
@@ -399,6 +435,9 @@ class CustomShutterCard extends LitElement {
     window.removeEventListener('mousemove', this._boundMouseMove);
     window.removeEventListener('mouseup', this._boundMouseUp);
     
+    // Log pour débugger la fin du déplacement
+    console.log("End of drag (mouseup)");
+    
     // Set the final position in Home Assistant
     this._sendPositionCommand();
   }
@@ -427,6 +466,22 @@ class CustomShutterCard extends LitElement {
     // Round to nearest integer for cleaner UI
     this.position = Math.round(newPositionPercent);
     
+    // Debug pour voir la position calculée
+    console.log("Position calculée:", this.position);
+    
+    // Mettre à jour manuellement la position du handle et des volets
+    const shutterHeight = 100 - this.position;
+    const shutterElement = this.shadowRoot.querySelector('.shutter-slats');
+    const handleElement = this.shadowRoot.querySelector('.shutter-handle');
+    
+    if (shutterElement) {
+      shutterElement.style.height = `${shutterHeight}%`;
+    }
+    
+    if (handleElement) {
+      handleElement.style.bottom = `${shutterHeight}%`;
+    }
+    
     // Force re-render after position update
     this.requestUpdate();
   }
@@ -445,6 +500,22 @@ class CustomShutterCard extends LitElement {
       // Round to nearest integer for cleaner UI
       this.position = Math.round(newPositionPercent);
       
+      // Debug pour voir la position calculée
+      console.log("Position calculée (touch):", this.position);
+      
+      // Mettre à jour manuellement la position du handle et des volets
+      const shutterHeight = 100 - this.position;
+      const shutterElement = this.shadowRoot.querySelector('.shutter-slats');
+      const handleElement = this.shadowRoot.querySelector('.shutter-handle');
+      
+      if (shutterElement) {
+        shutterElement.style.height = `${shutterHeight}%`;
+      }
+      
+      if (handleElement) {
+        handleElement.style.bottom = `${shutterHeight}%`;
+      }
+      
       // Force re-render after position update
       this.requestUpdate();
     }
@@ -452,11 +523,52 @@ class CustomShutterCard extends LitElement {
 
   _handleSliderChange(e) {
     this.position = parseInt(e.target.value);
+    
+    // Mettre à jour manuellement la position du handle et des volets
+    const shutterHeight = 100 - this.position;
+    const shutterElement = this.shadowRoot.querySelector('.shutter-slats');
+    const handleElement = this.shadowRoot.querySelector('.shutter-handle');
+    
+    if (shutterElement) {
+      shutterElement.style.height = `${shutterHeight}%`;
+    }
+    
+    if (handleElement) {
+      handleElement.style.bottom = `${shutterHeight}%`;
+    }
+    
     this._sendPositionCommand();
   }
 
   _setPosition(position) {
     this.position = position;
+    
+    // Log pour débugger les actions des boutons
+    if (position === 100) {
+      console.log("OPEN button clicked");
+    } else if (position === 0) {
+      console.log("CLOSE button clicked");
+    } else if (position > this.position - 10) {
+      console.log("OPEN button (+10%) clicked");
+    } else if (position < this.position + 10) {
+      console.log("CLOSE button (-10%) clicked");
+    }
+    
+    console.log("setPosition called with pos =", position);
+    
+    // Mettre à jour manuellement la position du handle et des volets
+    const shutterHeight = 100 - this.position;
+    const shutterElement = this.shadowRoot.querySelector('.shutter-slats');
+    const handleElement = this.shadowRoot.querySelector('.shutter-handle');
+    
+    if (shutterElement) {
+      shutterElement.style.height = `${shutterHeight}%`;
+    }
+    
+    if (handleElement) {
+      handleElement.style.bottom = `${shutterHeight}%`;
+    }
+    
     this._sendPositionCommand();
   }
 
@@ -479,6 +591,9 @@ class CustomShutterCard extends LitElement {
     
     // Call the service to control the cover
     this.hass.callService(domain, service, serviceData);
+    
+    // Pour la démo, affichons l'action dans la console
+    console.log(`Service appelé: ${domain}.${service} avec la position ${this.position}%`);
   }
 }
 
