@@ -52,6 +52,16 @@ class CustomShutterCard extends LitElement {
         console.log("Window:", this.shadowRoot.querySelector('.window'));
         console.log("Shutter:", this.shadowRoot.querySelector('.shutter-slats'));
         console.log("Handle:", this.shadowRoot.querySelector('.shutter-handle'));
+        console.log("Current position:", this.position);
+        
+        if (this.hass && this.config) {
+          const entityId = this.config.entity;
+          if (this.hass.states[entityId]) {
+            const stateObj = this.hass.states[entityId];
+            console.log("Entity state:", stateObj.state);
+            console.log("Entity attributes:", stateObj.attributes);
+          }
+        }
       } else {
         console.error("ShadowRoot not found!");
       }
@@ -427,8 +437,9 @@ class CustomShutterCard extends LitElement {
       ? stateObj.attributes.current_position 
       : this.position;
     
-    // For calculation, we need to transform the value: 100% = fully open = top at 0%, 0% = fully closed = top at 100%
-    const shutterHeight = 100 - currentPosition;
+    // Position logique: 100% = pleinement ouvert, 0% = pleinement fermé
+    // Pour la hauteur du volet: 100% = volet complètement fermé (bas), 0% = volet complètement ouvert (haut)
+    const shutterHeight = currentPosition;
 
     return html`
       <ha-card>
@@ -663,7 +674,9 @@ class CustomShutterCard extends LitElement {
     }
     
     try {
-      const shutterHeight = 100 - this.position;
+      // La hauteur du volet est égale à la position actuelle
+      // 0% = volet complètement ouvert (haut), 100% = volet complètement fermé (bas)
+      const shutterHeight = this.position;
       
       // Log general position info for debugging
       console.log("Position:", this.position, "ShutterHeight:", shutterHeight);
@@ -681,7 +694,7 @@ class CustomShutterCard extends LitElement {
       }
       
       if (handleElement) {
-        // Fix handle position
+        // Fix handle position - placer la poignée au bas du volet
         handleElement.style.bottom = `${shutterHeight}%`;
         console.log("Set handle bottom to:", shutterHeight + "%");
       } else {
@@ -788,13 +801,22 @@ class CustomShutterCard extends LitElement {
       let service;
       let serviceData = { entity_id: entityId };
       
+      // Inverser la commande pour correspondre à la logique de Home Assistant
+      // 0% = fermeture complète, 100% = ouverture complète
+      // Alors que notre UI représente 0% comme ouvert et 100% comme fermé
       if (this.position === 0) {
-        service = 'close_cover';
-      } else if (this.position === 100) {
+        // Position 0% signifie volet ouvert dans notre UI
         service = 'open_cover';
+        console.log("Commande: ouverture complète");
+      } else if (this.position === 100) {
+        // Position 100% signifie volet fermé dans notre UI
+        service = 'close_cover';
+        console.log("Commande: fermeture complète");
       } else {
+        // Pour les positions intermédiaires, nous inversons la valeur
         service = 'set_cover_position';
-        serviceData.position = this.position;
+        serviceData.position = 100 - this.position; // Inversion
+        console.log(`Position inversée pour HA: ${serviceData.position}%`);
       }
       
       // Log the service call for debugging
