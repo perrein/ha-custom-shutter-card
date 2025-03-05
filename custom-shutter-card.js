@@ -449,18 +449,14 @@ class CustomShutterCard extends LitElement {
     }
 
     // Get the current position from the entity or the internal state
-    // Inverted position for display in UI: 
-    // Home Assistant: 0% = fermé, 100% = ouvert
-    // Notre interface: 0% = ouvert, 100% = fermé
+    // La position dans Home Assistant: 0% = fermé, 100% = ouvert
     const haPosition = stateObj.attributes.current_position !== undefined 
       ? stateObj.attributes.current_position 
       : this.position;
     
-    // Dans notre UI, nous inversons la logique de position
-    const displayPosition = 100 - haPosition;
-
-    // Calculer la valeur de transformation
-    // transformValue est utilisé pour positionner correctement le volet et la poignée
+    // Pour notre affichage visuel:
+    // Lorsque le volet est ouvert (100%), il doit être en haut (transformY(-100%))
+    // Lorsque le volet est fermé (0%), il doit être en bas (transformY(0%))
     const transformValue = -haPosition;
 
     return html`
@@ -530,20 +526,20 @@ class CustomShutterCard extends LitElement {
           
           <div class="card-footer">
             <div class="position-control">
-              <button class="control-button" @click="${() => this._setPosition(0)}">
+              <button class="control-button" @click="${() => this._setPosition(100)}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="18 15 12 9 6 15"></polyline>
                 </svg>
                 Ouvrir
               </button>
-              <button class="control-button" @click="${() => this._setPosition(100)}">
+              <button class="control-button" @click="${() => this._setPosition(0)}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
                 Fermer
               </button>
-              <button class="control-button" @click="${() => this._setPosition(Math.max(0, haPosition - 10))}">+10%</button>
-              <button class="control-button" @click="${() => this._setPosition(Math.min(100, haPosition + 10))}">-10%</button>
+              <button class="control-button" @click="${() => this._setPosition(Math.min(100, haPosition + 10))}">+10%</button>
+              <button class="control-button" @click="${() => this._setPosition(Math.max(0, haPosition - 10))}">-10%</button>
             </div>
             <input type="range" min="0" max="100" value="${haPosition}" 
                   class="position-slider" @change="${this._handleSliderChange}">
@@ -834,22 +830,22 @@ class CustomShutterCard extends LitElement {
       let service;
       let serviceData = { entity_id: entityId };
       
-      // Inverser la commande pour correspondre à la logique de Home Assistant
-      // 0% = fermeture complète, 100% = ouverture complète
-      // Alors que notre UI représente 0% comme ouvert et 100% comme fermé
-      if (this.position === 0) {
-        // Position 0% signifie volet ouvert dans notre UI
+      // La position dans notre interface correspond directement à 
+      // la position dans Home Assistant
+      // 0% = fermé, 100% = ouvert
+      if (this.position === 100) {
+        // Position 100% = ouverture complète
         service = 'open_cover';
-        console.log("Commande: ouverture complète");
-      } else if (this.position === 100) {
-        // Position 100% signifie volet fermé dans notre UI
+        console.log("Commande: ouverture complète (100%)");
+      } else if (this.position === 0) {
+        // Position 0% = fermeture complète
         service = 'close_cover';
-        console.log("Commande: fermeture complète");
+        console.log("Commande: fermeture complète (0%)");
       } else {
-        // Pour les positions intermédiaires, nous inversons la valeur
+        // Pour les positions intermédiaires, on utilise directement la valeur
         service = 'set_cover_position';
-        serviceData.position = 100 - this.position; // Inversion
-        console.log(`Position inversée pour HA: ${serviceData.position}%`);
+        serviceData.position = this.position;
+        console.log(`Position pour HA: ${serviceData.position}%`);
       }
       
       // Log the service call for debugging
