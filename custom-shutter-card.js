@@ -10,9 +10,29 @@
  * @see https://github.com/yourusername/custom-shutter-card
  */
 
-const LitElement = Object.getPrototypeOf(customElements.get("ha-panel-lovelace"));
-const html = LitElement.prototype.html;
-const css = LitElement.prototype.css;
+// Chargement des dépendances
+let LitElement, html, css;
+
+try {
+  // Essayer de trouver les éléments Home Assistant
+  LitElement = Object.getPrototypeOf(customElements.get("ha-panel-lovelace"));
+  html = LitElement.prototype.html;
+  css = LitElement.prototype.css;
+} catch (e) {
+  // Fallback quand on n'est pas dans Home Assistant
+  console.log("Not in Home Assistant environment, using direct LitElement import");
+  
+  // Définir des objets fictifs pour permettre le fonctionnement hors HA
+  class MockLitElement {
+    static get properties() { return {}; }
+    updated() {}
+    render() { return document.createElement('div'); }
+  }
+  
+  LitElement = MockLitElement;
+  html = (strings, ...values) => strings.reduce((result, string, i) => result + string + (values[i] || ''), '');
+  css = (strings, ...values) => strings.reduce((result, string, i) => result + string + (values[i] || ''), '');
+}
 
 class CustomShutterCard extends LitElement {
   static get properties() {
