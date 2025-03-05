@@ -240,7 +240,7 @@ class CustomShutterCard extends LitElement {
       .shutter-handle {
         position: absolute;
         left: 50%;
-        /* La poignée est fixée au bas du volet et se déplace avec lui */
+        /* La poignée est attachée au bas du volet et se déplace avec lui */
         bottom: -5px; /* Légèrement sous le bas du volet */
         transform: translateX(-50%);
         width: 60px;
@@ -500,7 +500,7 @@ class CustomShutterCard extends LitElement {
                 <!-- Volets avec transformation -->
                 <div class="shutter-slats" 
                      style="transform: translateY(${transformValue}%)">
-                  <!-- Poignée fixe au bas du volet - à l'intérieur du volet pour qu'elle se déplace avec lui -->
+                  <!-- Poignée au bas du volet - à l'intérieur du volet pour qu'elle se déplace avec lui -->
                   <div class="shutter-handle" 
                        style="transform: translateX(-50%)">
                   </div>
