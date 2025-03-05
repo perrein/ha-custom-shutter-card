@@ -201,15 +201,30 @@ class CustomShutterCard extends LitElement {
         pointer-events: none;
       }
 
+      /* Container pour les volets et la poignée */
+      .shutter-slats-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: 5;
+        cursor: ns-resize;
+        background: none !important;
+      }
+      
       .shutter-slats {
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
+        height: 100%;
         background-color: var(--shutter-color);
         z-index: 2;
         cursor: ns-resize;
         transition: none;
+        transform: translateY(-100%); /* Au départ, complètement ouvert = invisible */
         background-image: repeating-linear-gradient(
           0deg, 
           #F0F0F0 0px, 
@@ -223,6 +238,7 @@ class CustomShutterCard extends LitElement {
       .shutter-handle {
         position: absolute;
         left: 50%;
+        bottom: 0; /* Toujours fixé au bas du volet */
         transform: translateX(-50%);
         width: 60px;
         height: 8px;
@@ -433,43 +449,53 @@ class CustomShutterCard extends LitElement {
     }
 
     // Get the current position from the entity or the internal state
-    const currentPosition = stateObj.attributes.current_position !== undefined 
+    // Inverted position for display in UI: 
+    // Home Assistant: 0% = fermé, 100% = ouvert
+    // Notre interface: 0% = ouvert, 100% = fermé
+    const haPosition = stateObj.attributes.current_position !== undefined 
       ? stateObj.attributes.current_position 
       : this.position;
     
-    // Position logique: 100% = pleinement ouvert, 0% = pleinement fermé
-    // Pour la hauteur du volet: 100% = volet complètement fermé (bas), 0% = volet complètement ouvert (haut)
-    const shutterHeight = currentPosition;
+    // Dans notre UI, nous inversons la logique de position
+    const displayPosition = 100 - haPosition;
+
+    // Calculer la valeur de transformation
+    // transformValue est utilisé pour positionner correctement le volet et la poignée
+    const transformValue = -haPosition;
 
     return html`
       <ha-card>
         <div class="card-container">
           <div class="card-header">
             ${this.config.title || stateObj.attributes.friendly_name || entityId}
-            <span>${currentPosition}% ouvert</span>
+            <span>${haPosition}% ouvert</span>
           </div>
           
           <div class="main-content">
             <div class="shutter-container" 
                  @mousedown="${this._onMouseDown}" 
                  @touchstart="${this._onTouchStart}">
+              <!-- Fenêtre (fond) -->
               <div class="window">
-                <!-- Structure de fenêtre plus réaliste -->
                 <div class="window-grid"></div>
                 <div class="window-reflection"></div>
               </div>
               
-              <!-- Volets -->
-              <div class="shutter-slats" style="height: ${shutterHeight}%">
-                <!-- Les lamelles sont créées par CSS -->
+              <!-- Conteneur pour les volets -->
+              <div class="shutter-slats-container">
+                <!-- Volets avec transformation -->
+                <div class="shutter-slats" 
+                     style="transform: translateY(${transformValue}%)">
+                </div>
+                
+                <!-- Poignée des volets, attachée au bas du volet -->
+                <div class="shutter-handle" 
+                     style="transform: translateX(-50%) translateY(${transformValue}%)">
+                </div>
               </div>
               
-              <!-- Cadre de la fenêtre -->
+              <!-- Cadre de la fenêtre (par-dessus) -->
               <div class="shutter-frame"></div>
-              
-              <!-- Poignée du volet -->
-              <div class="shutter-handle" id="shutter-handle"
-                   style="bottom: ${shutterHeight}%"></div>
             </div>
             
             <div class="info-panel">
@@ -479,7 +505,7 @@ class CustomShutterCard extends LitElement {
               </div>
               <div class="info-row">
                 <span class="info-label">Position:</span>
-                <span class="info-value">${currentPosition}%</span>
+                <span class="info-value">${haPosition}%</span>
               </div>
               ${stateObj.attributes.current_tilt_position !== undefined ? html`
                 <div class="info-row">
@@ -504,22 +530,22 @@ class CustomShutterCard extends LitElement {
           
           <div class="card-footer">
             <div class="position-control">
-              <button class="control-button" @click="${() => this._setPosition(100)}">
+              <button class="control-button" @click="${() => this._setPosition(0)}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="18 15 12 9 6 15"></polyline>
                 </svg>
                 Ouvrir
               </button>
-              <button class="control-button" @click="${() => this._setPosition(0)}">
+              <button class="control-button" @click="${() => this._setPosition(100)}">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
                 Fermer
               </button>
-              <button class="control-button" @click="${() => this._setPosition(Math.min(100, currentPosition + 10))}">+10%</button>
-              <button class="control-button" @click="${() => this._setPosition(Math.max(0, currentPosition - 10))}">-10%</button>
+              <button class="control-button" @click="${() => this._setPosition(Math.max(0, haPosition - 10))}">+10%</button>
+              <button class="control-button" @click="${() => this._setPosition(Math.min(100, haPosition + 10))}">-10%</button>
             </div>
-            <input type="range" min="0" max="100" value="${currentPosition}" 
+            <input type="range" min="0" max="100" value="${haPosition}" 
                   class="position-slider" @change="${this._handleSliderChange}">
           </div>
           
@@ -674,34 +700,41 @@ class CustomShutterCard extends LitElement {
     }
     
     try {
-      // La hauteur du volet est égale à la position actuelle
-      // 0% = volet complètement ouvert (haut), 100% = volet complètement fermé (bas)
-      const shutterHeight = this.position;
+      // Conversion: 
+      // Home Assistant API: 0% = fermé, 100% = ouvert
+      // Notre UI: 0% = ouvert (volet en haut), 100% = fermé (volet en bas)
       
-      // Log general position info for debugging
-      console.log("Position:", this.position, "ShutterHeight:", shutterHeight);
+      // Calculate transform value - au lieu de modifier la hauteur, on déplace les volets
+      // La position == 0 correspond à ouvert (transform: translateY(-100%))
+      // La position == 100 correspond à fermé (transform: translateY(0%))
+      const transformValue = -(100 - this.position);
       
-      // Get elements using querySelector within shadowRoot
+      // Log pour débogage
+      console.log("Position:", this.position, "Transform Value:", transformValue);
+      
+      // Récupérer les éléments du DOM
       const shutterElement = this.shadowRoot.querySelector('.shutter-slats');
       const handleElement = this.shadowRoot.querySelector('.shutter-handle');
       
-      // Update elements if they exist
+      // Mettre à jour la position du volet
       if (shutterElement) {
-        shutterElement.style.height = `${shutterHeight}%`;
-        console.log("Set shutter height to:", shutterHeight + "%");
+        // Utiliser transform pour déplacer le volet (plus performant que height)
+        shutterElement.style.transform = `translateY(${transformValue}%)`;
+        console.log("Shutter transform set to:", transformValue + "%");
       } else {
         console.error("Shutter element not found in DOM");
       }
       
+      // Mettre à jour la position de la poignée - doit toujours rester au bas du volet
       if (handleElement) {
-        // Fix handle position - placer la poignée au bas du volet
-        handleElement.style.bottom = `${shutterHeight}%`;
-        console.log("Set handle bottom to:", shutterHeight + "%");
+        // La poignée est toujours attachée au bas du volet visible
+        handleElement.style.transform = `translateX(-50%) translateY(${transformValue}%)`;
+        console.log("Handle transform set to:", transformValue + "%");
       } else {
         console.error("Handle element not found in DOM");
       }
       
-      // Request update to ensure UI reacts
+      // Demander une mise à jour de l'interface
       this.requestUpdate();
     } catch (error) {
       console.error("Error in _updateVisualElements:", error);
