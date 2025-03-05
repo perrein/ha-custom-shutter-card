@@ -240,8 +240,8 @@ class CustomShutterCard extends LitElement {
       .shutter-handle {
         position: absolute;
         left: 50%;
-        /* La poignée reste fixe en bas de la fenêtre */
-        bottom: 0; /* Fixée au bas de la fenêtre */
+        /* La poignée est fixée au bas du volet et se déplace avec lui */
+        bottom: -5px; /* Légèrement sous le bas du volet */
         transform: translateX(-50%);
         width: 60px;
         height: 8px;
@@ -500,15 +500,11 @@ class CustomShutterCard extends LitElement {
                 <!-- Volets avec transformation -->
                 <div class="shutter-slats" 
                      style="transform: translateY(${transformValue}%)">
+                  <!-- Poignée fixe au bas du volet - à l'intérieur du volet pour qu'elle se déplace avec lui -->
+                  <div class="shutter-handle" 
+                       style="transform: translateX(-50%)">
+                  </div>
                 </div>
-                
-                <!-- Poignée fixe en bas de la fenêtre - remarquez que la poignée est en dehors 
-                     du conteneur des volets pour qu'elle ne bouge pas avec eux -->
-              </div>
-              
-              <!-- La poignée est maintenant ici, directement attachée au conteneur principal -->
-              <div class="shutter-handle" 
-                   style="transform: translateX(-50%)">
               </div>
               
               <!-- Indicateur de position qui apparaît pendant le glissement -->
@@ -747,9 +743,9 @@ class CustomShutterCard extends LitElement {
         console.error("Shutter element not found in DOM");
       }
       
-      // La poignée reste fixe en bas (position CSS bottom: 0)
-      // et ne bouge pas avec le volet
-      // Donc ici on ne fait rien à la poignée, elle reste en place
+      // La poignée est attachée au volet et se déplace avec lui
+      // Donc ici on ne fait rien de spécial, elle se déplace automatiquement 
+      // avec le volet puisqu'elle est à l'intérieur de l'élément .shutter-slats
       
       // Demander une mise à jour de l'interface
       this.requestUpdate();
