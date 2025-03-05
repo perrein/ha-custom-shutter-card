@@ -253,21 +253,19 @@ class CustomShutterCard extends LitElement {
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
       }
       
-      /* Étiquette de position sur la poignée */
-      .position-label {
+      /* Indicateur de position qui apparaît lors du déplacement */
+      .position-indicator {
         position: absolute;
-        left: 50%;
-        bottom: 100%;
-        transform: translateX(-50%);
-        margin-bottom: 5px;
-        background-color: rgba(0, 0, 0, 0.7);
+        background-color: rgba(0, 0, 0, 0.8);
         color: white;
         border-radius: 4px;
-        padding: 2px 6px;
-        font-size: 12px;
+        padding: 3px 7px;
+        font-size: 14px;
         font-weight: bold;
         white-space: nowrap;
         z-index: 20;
+        pointer-events: none;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
       }
 
       .shutter-handle:hover, .shutter-handle:active {
@@ -504,11 +502,17 @@ class CustomShutterCard extends LitElement {
                      style="transform: translateY(${transformValue}%)">
                 </div>
                 
-                <!-- Poignée des volets fixée au bas du volet -->
+                <!-- Poignée fixe en bas de la fenêtre -->
                 <div class="shutter-handle" 
-                     style="transform: translateX(-50%) translateY(${transformValue}%)">
-                     <div class="position-label">${haPosition}%</div>
+                     style="transform: translateX(-50%)">
                 </div>
+                
+                <!-- Indicateur de position qui apparaît pendant le glissement -->
+                ${this._isMouseDown ? html`
+                <div class="position-indicator" 
+                    style="left: 50%; bottom: ${this.position}%; transform: translateX(-50%) translateY(50%);">
+                    ${this.position}%
+                </div>` : ''}
               </div>
               
               <!-- Cadre de la fenêtre (par-dessus) -->
@@ -730,7 +734,6 @@ class CustomShutterCard extends LitElement {
       
       // Récupérer les éléments du DOM
       const shutterElement = this.shadowRoot.querySelector('.shutter-slats');
-      const handleElement = this.shadowRoot.querySelector('.shutter-handle');
       
       // Mettre à jour la position du volet
       if (shutterElement) {
@@ -741,14 +744,8 @@ class CustomShutterCard extends LitElement {
         console.error("Shutter element not found in DOM");
       }
       
-      // Mettre à jour la position de la poignée - doit suivre le bas du volet
-      if (handleElement) {
-        // La poignée suit le volet avec la même transformation
-        handleElement.style.transform = `translateX(-50%) translateY(${transformValue}%)`;
-        console.log("Handle transform set to:", transformValue + "%");
-      } else {
-        console.error("Handle element not found in DOM");
-      }
+      // La poignée reste fixe en bas (position CSS bottom: 0)
+      // et ne bouge pas avec le volet
       
       // Demander une mise à jour de l'interface
       this.requestUpdate();
