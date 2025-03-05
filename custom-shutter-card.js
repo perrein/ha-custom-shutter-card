@@ -726,12 +726,11 @@ class CustomShutterCard extends LitElement {
       
       const containerRect = container.getBoundingClientRect();
       
-      // Calcul du déplacement relatif de la souris
-      const mouseDeltaY = this._startY - e.clientY;
-      // Conversion du déplacement en pourcentage de hauteur du conteneur
-      const deltaPercent = (mouseDeltaY / containerRect.height) * 100;
-      // Ajout du delta à la position initiale
-      let newPositionPercent = this._initialPosition + deltaPercent;
+      // Calcul direct de la position en fonction de l'emplacement de la souris dans le conteneur
+      // Le haut du conteneur = 100% (ouvert), le bas = 0% (fermé)
+      const relativeMouseY = e.clientY - containerRect.top;
+      const containerHeight = containerRect.height;
+      let newPositionPercent = 100 - (relativeMouseY / containerHeight * 100);
       
       // Clamp the position between 0 and 100
       newPositionPercent = Math.max(0, Math.min(100, newPositionPercent));
@@ -739,7 +738,7 @@ class CustomShutterCard extends LitElement {
       // Round to nearest integer for cleaner UI
       this.position = Math.round(newPositionPercent);
       
-      console.log("Position calculée par la souris:", this.position, "delta:", deltaPercent);
+      console.log("Position calculée par la souris:", this.position);
       
       // Mettre à jour manuellement la position du handle et des volets
       this._updateVisualElements();
@@ -803,12 +802,11 @@ class CustomShutterCard extends LitElement {
         
         const containerRect = container.getBoundingClientRect();
         
-        // Calcul du déplacement relatif du toucher
-        const touchDeltaY = this._startY - e.touches[0].clientY;
-        // Conversion du déplacement en pourcentage de hauteur du conteneur
-        const deltaPercent = (touchDeltaY / containerRect.height) * 100;
-        // Ajout du delta à la position initiale
-        let newPositionPercent = this._initialPosition + deltaPercent;
+        // Calcul direct de la position en fonction de l'emplacement du toucher dans le conteneur
+        // Le haut du conteneur = 100% (ouvert), le bas = 0% (fermé)
+        const relativeTouchY = e.touches[0].clientY - containerRect.top;
+        const containerHeight = containerRect.height;
+        let newPositionPercent = 100 - (relativeTouchY / containerHeight * 100);
         
         // Clamp the position between 0 and 100
         newPositionPercent = Math.max(0, Math.min(100, newPositionPercent));
@@ -816,7 +814,7 @@ class CustomShutterCard extends LitElement {
         // Round to nearest integer for cleaner UI
         this.position = Math.round(newPositionPercent);
         
-        console.log("Position calculée (touch):", this.position, "delta:", deltaPercent);
+        console.log("Position calculée (touch):", this.position);
         
         // Use the centralized function for visual updates
         this._updateVisualElements();
