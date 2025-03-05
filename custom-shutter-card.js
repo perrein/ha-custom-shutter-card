@@ -240,8 +240,8 @@ class CustomShutterCard extends LitElement {
       .shutter-handle {
         position: absolute;
         left: 50%;
-        /* La poignée est attachée au volet et se déplace avec lui */
-        bottom: -4px; /* Légèrement en bas du volet */
+        /* La poignée reste fixe en bas de la fenêtre */
+        bottom: 0; /* Fixée au bas de la fenêtre */
         transform: translateX(-50%);
         width: 60px;
         height: 8px;
@@ -502,18 +502,21 @@ class CustomShutterCard extends LitElement {
                      style="transform: translateY(${transformValue}%)">
                 </div>
                 
-                <!-- Poignée fixe en bas de la fenêtre -->
-                <div class="shutter-handle" 
-                     style="transform: translateX(-50%)">
-                </div>
-                
-                <!-- Indicateur de position qui apparaît pendant le glissement -->
-                ${this._isMouseDown ? html`
-                <div class="position-indicator" 
-                    style="left: 50%; bottom: ${this.position}%; transform: translateX(-50%) translateY(50%);">
-                    ${this.position}%
-                </div>` : ''}
+                <!-- Poignée fixe en bas de la fenêtre - remarquez que la poignée est en dehors 
+                     du conteneur des volets pour qu'elle ne bouge pas avec eux -->
               </div>
+              
+              <!-- La poignée est maintenant ici, directement attachée au conteneur principal -->
+              <div class="shutter-handle" 
+                   style="transform: translateX(-50%)">
+              </div>
+              
+              <!-- Indicateur de position qui apparaît pendant le glissement -->
+              ${this._isMouseDown ? html`
+              <div class="position-indicator" 
+                  style="left: 50%; bottom: ${this.position}%; transform: translateX(-50%) translateY(50%);">
+                  ${this.position}%
+              </div>` : ''}
               
               <!-- Cadre de la fenêtre (par-dessus) -->
               <div class="shutter-frame"></div>
@@ -746,6 +749,7 @@ class CustomShutterCard extends LitElement {
       
       // La poignée reste fixe en bas (position CSS bottom: 0)
       // et ne bouge pas avec le volet
+      // Donc ici on ne fait rien à la poignée, elle reste en place
       
       // Demander une mise à jour de l'interface
       this.requestUpdate();
