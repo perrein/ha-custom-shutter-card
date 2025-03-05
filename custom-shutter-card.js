@@ -253,19 +253,21 @@ class CustomShutterCard extends LitElement {
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
       }
       
-      /* Indicateur de position qui apparaît lors du déplacement */
-      .position-indicator {
+      /* Étiquette de position sur la poignée */
+      .position-label {
         position: absolute;
+        left: 50%;
+        bottom: 100%;
+        transform: translateX(-50%);
+        margin-bottom: 5px;
         background-color: rgba(0, 0, 0, 0.7);
         color: white;
         border-radius: 4px;
         padding: 2px 6px;
         font-size: 12px;
         font-weight: bold;
+        white-space: nowrap;
         z-index: 20;
-        pointer-events: none; /* Permet de cliquer à travers l'indicateur */
-        opacity: 0;
-        transition: opacity 0.3s;
       }
 
       .shutter-handle:hover, .shutter-handle:active {
@@ -502,14 +504,10 @@ class CustomShutterCard extends LitElement {
                      style="transform: translateY(${transformValue}%)">
                 </div>
                 
-                <!-- Poignée des volets, suit le bas du volet -->
+                <!-- Poignée des volets fixée au bas du volet -->
                 <div class="shutter-handle" 
                      style="transform: translateX(-50%) translateY(${transformValue}%)">
-                </div>
-                
-                <!-- Indicateur de position qui apparaît pendant le glissement -->
-                <div class="position-indicator" id="positionIndicator">
-                  ${haPosition}%
+                     <div class="position-label">${haPosition}%</div>
                 </div>
               </div>
               
@@ -733,7 +731,6 @@ class CustomShutterCard extends LitElement {
       // Récupérer les éléments du DOM
       const shutterElement = this.shadowRoot.querySelector('.shutter-slats');
       const handleElement = this.shadowRoot.querySelector('.shutter-handle');
-      const indicatorElement = this.shadowRoot.querySelector('.position-indicator');
       
       // Mettre à jour la position du volet
       if (shutterElement) {
@@ -751,21 +748,6 @@ class CustomShutterCard extends LitElement {
         console.log("Handle transform set to:", transformValue + "%");
       } else {
         console.error("Handle element not found in DOM");
-      }
-      
-      // Afficher l'indicateur de position pendant le déplacement
-      if (indicatorElement) {
-        if (this._isMouseDown) {
-          // Positionner l'indicateur près de la poignée
-          indicatorElement.style.opacity = '1';
-          indicatorElement.style.left = '50%';
-          indicatorElement.style.bottom = `calc(${-transformValue}% + 20px)`;
-          indicatorElement.style.transform = 'translateX(-50%)';
-          indicatorElement.textContent = `${this.position}%`;
-        } else {
-          // Cacher l'indicateur quand on ne déplace pas
-          indicatorElement.style.opacity = '0';
-        }
       }
       
       // Demander une mise à jour de l'interface
