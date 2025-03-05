@@ -51,6 +51,10 @@ class CustomShutterCard extends LitElement {
     this.dragging = false;
     this._isMouseDown = false;
     
+    // Variables pour le calcul du mouvement relatif
+    this._initialPosition = 100;
+    this._startY = 0;
+    
     // Debug log for initialization
     console.log("--- INITIALIZING SHUTTER APPLICATION ---");
     
@@ -622,13 +626,18 @@ class CustomShutterCard extends LitElement {
   _onMouseDown(e) {
     try {
       this._isMouseDown = true;
-      this._updatePositionFromMouseEvent(e);
+      
+      // Mémoriser la position initiale et le point de départ de la souris
+      this._initialPosition = this.position;
+      const container = this.shadowRoot.querySelector('.shutter-container');
+      const containerRect = container.getBoundingClientRect();
+      this._startY = e.clientY;
       
       // Add event listeners to window to handle mouse movements outside the card
       window.addEventListener('mousemove', this._onMouseMove);
       window.addEventListener('mouseup', this._onMouseUp);
       
-      console.log("Mouse down detected - Drag started");
+      console.log("Mouse down detected - Drag started, initial position:", this._initialPosition);
       
       // Prevent text selection during drag
       e.preventDefault();
@@ -640,13 +649,18 @@ class CustomShutterCard extends LitElement {
   _onTouchStart(e) {
     try {
       this._isMouseDown = true;
-      this._updatePositionFromTouchEvent(e);
+      
+      // Mémoriser la position initiale et le point de départ du toucher
+      this._initialPosition = this.position;
+      const container = this.shadowRoot.querySelector('.shutter-container');
+      const containerRect = container.getBoundingClientRect();
+      this._startY = e.touches[0].clientY;
       
       // Add event listeners to window to handle touch movements
       window.addEventListener('touchmove', this._onTouchMove);
       window.addEventListener('touchend', this._onTouchEnd);
       
-      console.log("Touch start detected - Drag started");
+      console.log("Touch start detected - Drag started, initial position:", this._initialPosition);
       
       // Prevent scrolling during interaction
       e.preventDefault();
@@ -712,8 +726,12 @@ class CustomShutterCard extends LitElement {
       
       const containerRect = container.getBoundingClientRect();
       
-      // Calculate position percentage from mouse Y position in relation to container
-      let newPositionPercent = ((containerRect.bottom - e.clientY) / containerRect.height) * 100;
+      // Calcul du déplacement relatif de la souris
+      const mouseDeltaY = this._startY - e.clientY;
+      // Conversion du déplacement en pourcentage de hauteur du conteneur
+      const deltaPercent = (mouseDeltaY / containerRect.height) * 100;
+      // Ajout du delta à la position initiale
+      let newPositionPercent = this._initialPosition + deltaPercent;
       
       // Clamp the position between 0 and 100
       newPositionPercent = Math.max(0, Math.min(100, newPositionPercent));
@@ -721,7 +739,7 @@ class CustomShutterCard extends LitElement {
       // Round to nearest integer for cleaner UI
       this.position = Math.round(newPositionPercent);
       
-      console.log("Position calculée par la souris:", this.position);
+      console.log("Position calculée par la souris:", this.position, "delta:", deltaPercent);
       
       // Mettre à jour manuellement la position du handle et des volets
       this._updateVisualElements();
@@ -785,8 +803,12 @@ class CustomShutterCard extends LitElement {
         
         const containerRect = container.getBoundingClientRect();
         
-        // Calculate position percentage from touch Y position in relation to container
-        let newPositionPercent = ((containerRect.bottom - e.touches[0].clientY) / containerRect.height) * 100;
+        // Calcul du déplacement relatif du toucher
+        const touchDeltaY = this._startY - e.touches[0].clientY;
+        // Conversion du déplacement en pourcentage de hauteur du conteneur
+        const deltaPercent = (touchDeltaY / containerRect.height) * 100;
+        // Ajout du delta à la position initiale
+        let newPositionPercent = this._initialPosition + deltaPercent;
         
         // Clamp the position between 0 and 100
         newPositionPercent = Math.max(0, Math.min(100, newPositionPercent));
@@ -794,7 +816,7 @@ class CustomShutterCard extends LitElement {
         // Round to nearest integer for cleaner UI
         this.position = Math.round(newPositionPercent);
         
-        console.log("Position calculée (touch):", this.position);
+        console.log("Position calculée (touch):", this.position, "delta:", deltaPercent);
         
         // Use the centralized function for visual updates
         this._updateVisualElements();
