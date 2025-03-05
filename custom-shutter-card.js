@@ -201,30 +201,31 @@ class CustomShutterCard extends LitElement {
         pointer-events: none;
       }
 
-      /* Container pour les volets et la poignée */
+      /* Container pour les volets et la poignée - exactement comme dans index.html */
       .shutter-slats-container {
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        overflow: hidden;
-        z-index: 5;
+        overflow: hidden; /* Pour masquer le contenu plutôt que de l'écraser */
+        z-index: 5; /* Z-index élevé pour être au-dessus de la fenêtre */
         cursor: ns-resize;
-        background: none !important;
+        background: none !important; /* Assure qu'aucun fond ne cache les volets */
       }
       
       .shutter-slats {
         position: absolute;
-        top: 0;
+        top: -25px; /* Commence plus haut pour assurer une couverture complète */
         left: 0;
         width: 100%;
-        height: 100%;
+        height: 200%; /* Hauteur plus importante pour garantir la couverture */
         background-color: var(--shutter-color);
-        z-index: 2;
+        transform-origin: top;
+        transform: translateY(-50%); /* Position initiale à moitié fermée */
+        z-index: 10;
         cursor: ns-resize;
         transition: none;
-        transform: translateY(-100%); /* Au départ, complètement ouvert = invisible */
         background-image: repeating-linear-gradient(
           0deg, 
           #F0F0F0 0px, 
@@ -233,20 +234,22 @@ class CustomShutterCard extends LitElement {
           #F2F2F2 15px
         );
         box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        overflow: hidden; /* Pour s'assurer que rien ne dépasse */
       }
 
       .shutter-handle {
         position: absolute;
         left: 50%;
-        bottom: 0; /* Toujours fixé au bas du volet */
+        /* La poignée est placée en bas du conteneur de volets (pas du volet lui-même) */
+        bottom: 8px; 
         transform: translateX(-50%);
         width: 60px;
         height: 8px;
         background-color: #455A64;
         border-radius: 4px;
         cursor: ns-resize;
-        z-index: 10;
-        transition: none; 
+        z-index: 11; /* Au-dessus du volet */
+        transition: none; /* Désactivation de la transition pour un suivi instantané */
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
       }
 
@@ -484,9 +487,9 @@ class CustomShutterCard extends LitElement {
                      style="transform: translateY(${transformValue}%)">
                 </div>
                 
-                <!-- Poignée des volets, attachée au bas du volet -->
+                <!-- Poignée des volets, attachée visuellement au bas du volet -->
                 <div class="shutter-handle" 
-                     style="transform: translateX(-50%) translateY(${transformValue}%)">
+                     style="transform: translateX(-50%)">
                 </div>
               </div>
               
@@ -696,21 +699,19 @@ class CustomShutterCard extends LitElement {
     }
     
     try {
-      // Conversion: 
-      // Home Assistant API: 0% = fermé, 100% = ouvert
-      // Notre UI: 0% = ouvert (volet en haut), 100% = fermé (volet en bas)
+      // Affichage visuel: 
+      // Pour HA: 0% = fermé (volet en bas), 100% = ouvert (volet en haut)
       
-      // Calculate transform value - au lieu de modifier la hauteur, on déplace les volets
-      // La position == 0 correspond à ouvert (transform: translateY(-100%))
-      // La position == 100 correspond à fermé (transform: translateY(0%))
-      const transformValue = -(100 - this.position);
+      // Calcul de la valeur de transformation pour déplacer le volet
+      // Lorsque position = 0% (fermé), translateY(0%)
+      // Lorsque position = 100% (ouvert), translateY(-100%)
+      const transformValue = -this.position;
       
       // Log pour débogage
       console.log("Position:", this.position, "Transform Value:", transformValue);
       
       // Récupérer les éléments du DOM
       const shutterElement = this.shadowRoot.querySelector('.shutter-slats');
-      const handleElement = this.shadowRoot.querySelector('.shutter-handle');
       
       // Mettre à jour la position du volet
       if (shutterElement) {
@@ -721,14 +722,8 @@ class CustomShutterCard extends LitElement {
         console.error("Shutter element not found in DOM");
       }
       
-      // Mettre à jour la position de la poignée - doit toujours rester au bas du volet
-      if (handleElement) {
-        // La poignée est toujours attachée au bas du volet visible
-        handleElement.style.transform = `translateX(-50%) translateY(${transformValue}%)`;
-        console.log("Handle transform set to:", transformValue + "%");
-      } else {
-        console.error("Handle element not found in DOM");
-      }
+      // La poignée reste fixe en bas (position CSS bottom: 0)
+      // et ne bouge pas avec le transform, elle est toujours au même endroit
       
       // Demander une mise à jour de l'interface
       this.requestUpdate();
